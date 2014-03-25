@@ -8,6 +8,8 @@
 # Java class files
 *.class
 
+libs/android-support-v4.jar
+
 # generated files
 bin/
 gen/
