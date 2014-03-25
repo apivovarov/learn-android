@@ -54,8 +54,15 @@ public class DisplayMessageActivity extends Activity {
                 //
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.action_settings:
+                openSettings();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    protected void openSettings() {
+
     }
 
 }
