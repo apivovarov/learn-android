@@ -3,6 +3,7 @@ package org.x4444.app1u;
 
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -17,7 +18,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+@SuppressLint("ShowToast")
 public class MainActivity extends Activity {
 
     ContentResolver contentResolver;
@@ -44,6 +47,10 @@ public class MainActivity extends Activity {
 
     NoGpsDialogFragment dia;
 
+    Toast gpsEnabledToast;
+
+    Toast gpsDisabledToast;
+
     static class MyLocationListener implements LocationListener {
 
         MainActivity mainActivity;
@@ -68,17 +75,20 @@ public class MainActivity extends Activity {
 
         @Override
         public void onProviderDisabled(String provider) {
+            mainActivity.gpsDisabledToast.show();
             Log.i("gps", "gps provider disabled: " + provider);
         }
 
         @Override
         public void onProviderEnabled(String provider) {
+            mainActivity.gpsEnabledToast.show();
             Log.i("gps", "gps provider enabled: " + provider);
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.i("gps", "gps status: " + status);
+            mainActivity.makeToast("GPS status: " + status, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -135,6 +145,9 @@ public class MainActivity extends Activity {
         editAlt2 = (EditText)findViewById(R.id.editAlt2);
 
         editDist = (EditText)findViewById(R.id.editDist);
+
+        gpsEnabledToast = makeShortToast("GPS Enabled");
+        gpsDisabledToast = makeShortToast("GPS Disabled");
     }
 
     public void button1Click(View view) {
@@ -213,5 +226,15 @@ public class MainActivity extends Activity {
                 Log.e("gps", e.getMessage());
             }
         }
+    }
+
+    public Toast makeShortToast(String msg) {
+        return makeToast(msg, Toast.LENGTH_SHORT);
+    }
+
+    public Toast makeToast(String msg, int duration) {
+        Context context = getApplicationContext();
+        Toast toast = Toast.makeText(context, msg, duration);
+        return toast;
     }
 }
