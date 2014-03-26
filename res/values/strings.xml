@@ -2,8 +2,8 @@
 <resources>
 
     <string name="title_home">App1u</string>
-    <string name="textPointA">Point A</string>
-    <string name="textPointB">Point B</string>
+    <string name="textPointA">Point A:</string>
+    <string name="textPointB">Point B:</string>
     <string name="editLat1">Lat A</string>
     <string name="editLon1">Lon A</string>
     <string name="editAlt1">Alt A</string>
