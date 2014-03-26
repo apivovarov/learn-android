@@ -4,7 +4,6 @@ package org.x4444.app1u;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -52,7 +51,12 @@ public class DisplayMessageActivity extends Activity {
                 //
                 // http://developer.android.com/design/patterns/navigation.html#up-vs-back
                 //
-                NavUtils.navigateUpFromSameTask(this);
+                // Intent upIntent = NavUtils.getParentActivityIntent(this);
+                // if (!NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                // NavUtils.navigateUpTo(this, upIntent);
+                // }
+                // NavUtils.navigateUpFromSameTask(this);
+                finish();
                 return true;
             case R.id.action_settings:
                 openSettings();
