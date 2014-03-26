@@ -20,9 +20,9 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-    LocationManager mlocManager;
+    LocationManager locMngr;
 
-    MyLocationListener li;
+    MyLocationListener locListener;
 
     EditText editLat1;
 
@@ -71,6 +71,18 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        locMngr.removeUpdates(locListener);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, locListener);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -79,16 +91,16 @@ public class MainActivity extends Activity {
                 LocationManager.GPS_PROVIDER);
         Log.i("gps", "" + gpsStatus);
 
-        mlocManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        List<String> provs = mlocManager.getProviders(true);
+        locMngr = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        List<String> provs = locMngr.getProviders(true);
         Log.i("gps", "provs: " + provs);
 
         setContentView(R.layout.main);
 
-        li = new MyLocationListener();
+        locListener = new MyLocationListener();
         TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
-        li.init(textLatLon);
-        mlocManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, li);
+        locListener.init(textLatLon);
+        locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, locListener);
 
         editLat1 = (EditText)findViewById(R.id.editLat1);
         editLon1 = (EditText)findViewById(R.id.editLon1);
@@ -100,7 +112,7 @@ public class MainActivity extends Activity {
 
         editDist = (EditText)findViewById(R.id.editDist);
 
-        Location loc = mlocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         updateTextLatLon(textLatLon, loc);
     }
 
@@ -108,7 +120,7 @@ public class MainActivity extends Activity {
     public void button1Click(View view) {
         // Intent intent = new Intent(this, DisplayMessageActivity.class);
 
-        Location loc = mlocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
         editLat1.setText("" + loc.getLatitude());
         editLon1.setText("" + loc.getLongitude());
@@ -124,7 +136,7 @@ public class MainActivity extends Activity {
     }
 
     public void button2Click(View view) {
-        Location loc = mlocManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
         editLat2.setText("" + loc.getLatitude());
         editLon2.setText("" + loc.getLongitude());
