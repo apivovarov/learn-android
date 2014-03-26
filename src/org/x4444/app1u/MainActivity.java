@@ -20,6 +20,8 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
+    ContentResolver contentResolver;
+
     LocationManager locMngr;
 
     MyLocationListener locListener;
@@ -40,9 +42,17 @@ public class MainActivity extends Activity {
 
     EditText editDist;
 
+    NoGpsDialogFragment dia;
+
     static class MyLocationListener implements LocationListener {
 
+        MainActivity mainActivity;
+
         TextView textLatLon;
+
+        public MyLocationListener(MainActivity mainActivity) {
+            this.mainActivity = mainActivity;
+        }
 
         public void init(TextView textLatLon) {
             this.textLatLon = textLatLon;
@@ -50,8 +60,10 @@ public class MainActivity extends Activity {
 
         @Override
         public void onLocationChanged(Location loc) {
-            logLocation("onLocationChanged", loc);
-            updateTextLatLon(textLatLon, loc);
+            if (loc != null) {
+                mainActivity.logLocation("onLocationChanged", loc);
+                mainActivity.updateTextLatLon(textLatLon, loc);
+            }
         }
 
         @Override
@@ -73,34 +85,46 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i("gps", "onPause");
         locMngr.removeUpdates(locListener);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i("gps", "onResume");
+        List<String> provs = locMngr.getProviders(true);
+        Log.i("gps", "provs: " + provs);
+        boolean isLocationProviderEnabled = Settings.Secure.isLocationProviderEnabled(
+                contentResolver, LocationManager.GPS_PROVIDER);
+        Log.i("gps", "isLocationProviderEnabled: " + isLocationProviderEnabled);
+
         locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, locListener);
+        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (loc != null) {
+            updateTextLatLon(textLatLon, loc);
+        }
+
+        if (!isLocationProviderEnabled) {
+            dia.show(getFragmentManager(), "nogps");
+        }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("gps", "onCreate");
 
-        ContentResolver contentResolver = getBaseContext().getContentResolver();
-        boolean gpsStatus = Settings.Secure.isLocationProviderEnabled(contentResolver,
-                LocationManager.GPS_PROVIDER);
-        Log.i("gps", "" + gpsStatus);
+        dia = new NoGpsDialogFragment();
+        contentResolver = getBaseContext().getContentResolver();
 
         locMngr = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        List<String> provs = locMngr.getProviders(true);
-        Log.i("gps", "provs: " + provs);
 
         setContentView(R.layout.main);
 
-        locListener = new MyLocationListener();
+        locListener = new MyLocationListener(this);
         TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
         locListener.init(textLatLon);
-        locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, locListener);
 
         editLat1 = (EditText)findViewById(R.id.editLat1);
         editLon1 = (EditText)findViewById(R.id.editLon1);
@@ -111,40 +135,28 @@ public class MainActivity extends Activity {
         editAlt2 = (EditText)findViewById(R.id.editAlt2);
 
         editDist = (EditText)findViewById(R.id.editDist);
-
-        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        updateTextLatLon(textLatLon, loc);
     }
 
-    /** Called when the user clicks the Send button */
     public void button1Click(View view) {
-        // Intent intent = new Intent(this, DisplayMessageActivity.class);
-
-        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-        editLat1.setText("" + loc.getLatitude());
-        editLon1.setText("" + loc.getLongitude());
-        editAlt1.setText("" + loc.getAltitude());
-
-        logLocation("getLastKnownLocation A", loc);
-        // String msg = editText1.getText().toString();
-
-        // intent.putExtra("mymsg", msg);
-        // startActivity(intent);
-
-        updateDistance();
+        pinLocation(editLat1, editLon1, editAlt1, "A");
     }
 
     public void button2Click(View view) {
+        pinLocation(editLat2, editLon2, editAlt2, "B");
+    }
+
+    protected void pinLocation(EditText editLat, EditText editLon, EditText editAlt, String pontName) {
         Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-        editLat2.setText("" + loc.getLatitude());
-        editLon2.setText("" + loc.getLongitude());
-        editAlt2.setText("" + loc.getAltitude());
+        if (loc != null) {
+            editLat.setText("" + loc.getLatitude());
+            editLon.setText("" + loc.getLongitude());
+            editAlt.setText("" + loc.getAltitude());
 
-        logLocation("getLastKnownLocation B", loc);
+            logLocation("getLastKnownLocation " + pontName, loc);
 
-        updateDistance();
+            updateDistance();
+        }
     }
 
     @Override
@@ -168,7 +180,7 @@ public class MainActivity extends Activity {
 
     }
 
-    static void updateTextLatLon(TextView textLatLon, Location loc) {
+    protected void updateTextLatLon(TextView textLatLon, Location loc) {
         if (textLatLon != null) {
             String alt = "" + loc.getAltitude();
             if (alt.length() > 10) {
@@ -178,24 +190,28 @@ public class MainActivity extends Activity {
         }
     }
 
-    static void logLocation(String eventDesc, Location loc) {
+    protected void logLocation(String eventDesc, Location loc) {
         Log.i("gps", eventDesc + ". latlon: " + loc.getLatitude() + "," + loc.getLongitude()
                 + " alt: " + loc.getAltitude());
     }
 
-    void updateDistance() {
+    protected void updateDistance() {
         if (editLat1.length() > 0 && editLon1.length() > 0 && editLat2.length() > 0
                 && editLon2.length() > 0) {
-            double lat1D = Double.parseDouble(editLat1.getText().toString());
-            double lon1D = Double.parseDouble(editLon1.getText().toString());
-            double lat2D = Double.parseDouble(editLat2.getText().toString());
-            double lon2D = Double.parseDouble(editLon2.getText().toString());
+            try {
+                double lat1D = Double.parseDouble(editLat1.getText().toString());
+                double lon1D = Double.parseDouble(editLon1.getText().toString());
+                double lat2D = Double.parseDouble(editLat2.getText().toString());
+                double lon2D = Double.parseDouble(editLon2.getText().toString());
 
-            double d = GeoUtils.getDistance(lat1D, lon1D, lat2D, lon2D);
+                double d = GeoUtils.getDistance(lat1D, lon1D, lat2D, lon2D);
 
-            editDist.setText("" + d);
+                editDist.setText("" + d);
 
-            Log.i("gps", "dist: " + d);
+                Log.i("gps", "dist: " + d);
+            } catch (RuntimeException e) {
+                Log.e("gps", e.getMessage());
+            }
         }
     }
 }
