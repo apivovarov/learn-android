@@ -3,6 +3,8 @@ package org.x4444.app1u;
 
 import java.util.List;
 
+import org.x4444.app1u.db.LocationDao;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -50,6 +52,8 @@ public class MainActivity extends Activity {
     Toast gpsEnabledToast;
 
     Toast gpsDisabledToast;
+
+    LocationDao dao;
 
     static class MyLocationListener implements LocationListener {
 
@@ -148,6 +152,10 @@ public class MainActivity extends Activity {
 
         gpsEnabledToast = makeShortToast("GPS Enabled");
         gpsDisabledToast = makeShortToast("GPS Disabled");
+
+        Context context = getApplicationContext();
+        dao = LocationDao.getInstance();
+        dao.init(context);
     }
 
     public void button1Click(View view) {
@@ -236,5 +244,16 @@ public class MainActivity extends Activity {
         Context context = getApplicationContext();
         Toast toast = Toast.makeText(context, msg, duration);
         return toast;
+    }
+
+    public void button3Click(View view) {
+        Log.i("gps", "dao: " + dao);
+
+        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (loc != null) {
+            Log.i("gps", "loc saving");
+            dao.saveLocation(loc);
+            Log.i("gps", "loc saved");
+        }
     }
 }
