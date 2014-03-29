@@ -1,11 +1,14 @@
 
 package org.x4444.app1u.db;
 
+import java.util.List;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.util.Log;
@@ -50,6 +53,56 @@ public class LocationDao {
         try {
             long rowId = db.insert(TABLE_NAME, null, values);
             Log.i("gps", "rowId: " + rowId);
+        } finally {
+            db.close();
+            Log.d("gps", "db closed");
+        }
+    }
+
+    /**
+     * Adds up to N rown to ArrayList.
+     * 
+     * @param res
+     * @param n
+     * @return true is more data available
+     */
+    public boolean getFirstNLocations(List<String> res, int n) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try {
+            String[] columns = new String[] {
+                COLUMN_NAME_VALUE
+            };
+
+            Cursor c = db.query(TABLE_NAME, columns, null, null, null, null, COLUMN_NAME_KEY);
+            boolean exist = c.moveToFirst();
+            if (exist) {
+                Log.i("gps", "first row exists");
+            }
+            while (exist && res.size() <= n) {
+                String v = c.getString(0);
+                res.add(v);
+                Log.i("gps", v);
+                exist = c.moveToNext();
+            }
+            return exist;
+        } finally {
+            db.close();
+            Log.d("gps", "db closed");
+        }
+    }
+
+    public int delLocations(long firstId, long lastId) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String firstIdStr = String.valueOf(firstId);
+        String lastIdStr = String.valueOf(lastId);
+        String where = COLUMN_NAME_KEY + " >= ? and " + COLUMN_NAME_KEY + " <= ?";
+        String[] whereValues = new String[] {
+                firstIdStr, lastIdStr
+        };
+        try {
+            int cnt = db.delete(TABLE_NAME, where, whereValues);
+            Log.i("gps", "deleted " + cnt);
+            return cnt;
         } finally {
             db.close();
             Log.d("gps", "db closed");

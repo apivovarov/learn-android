@@ -16,6 +16,7 @@
     <string name="button1">Pin A</string>
     <string name="button2">Pin B</string>
     <string name="button3">Save to DB</string>
+    <string name="button4">Read DB</string>
     <string name="textView1">TextView1</string>
     <string name="title_activity_display_message">App1u - Message</string>
     <string name="action_settings">Settings</string>

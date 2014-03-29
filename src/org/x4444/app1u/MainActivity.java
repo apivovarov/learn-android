@@ -1,8 +1,12 @@
 
 package org.x4444.app1u;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.x4444.app1u.db.LocationDao;
 
 import android.annotation.SuppressLint;
@@ -12,6 +16,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -55,6 +60,8 @@ public class MainActivity extends Activity {
 
     LocationDao dao;
 
+    NetworkService netService;
+
     static class MyLocationListener implements LocationListener {
 
         MainActivity mainActivity;
@@ -74,6 +81,7 @@ public class MainActivity extends Activity {
             if (loc != null) {
                 mainActivity.logLocation("onLocationChanged", loc);
                 mainActivity.updateTextLatLon(textLatLon, loc);
+                mainActivity.saveLastKnownLocation();
             }
         }
 
@@ -113,7 +121,7 @@ public class MainActivity extends Activity {
                 contentResolver, LocationManager.GPS_PROVIDER);
         Log.i("gps", "isLocationProviderEnabled: " + isLocationProviderEnabled);
 
-        locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0.01f, locListener);
+        locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0f, locListener);
         Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         if (loc != null) {
             updateTextLatLon(textLatLon, loc);
@@ -156,6 +164,8 @@ public class MainActivity extends Activity {
         Context context = getApplicationContext();
         dao = LocationDao.getInstance();
         dao.init(context);
+
+        netService = new NetworkService(this, context);
     }
 
     public void button1Click(View view) {
@@ -247,6 +257,10 @@ public class MainActivity extends Activity {
     }
 
     public void button3Click(View view) {
+        saveLastKnownLocation();
+    }
+
+    protected void saveLastKnownLocation() {
         Log.i("gps", "dao: " + dao);
 
         Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -256,4 +270,78 @@ public class MainActivity extends Activity {
             Log.i("gps", "loc saved");
         }
     }
+
+    public void button4Click(View view) {
+        Log.i("gps", "dao: " + dao);
+
+        boolean more = true;
+        int cnt = 0;
+        while (more) {
+            List<String> res = new ArrayList<String>();
+            more = dao.getFirstNLocations(res, 5);
+            more = false;
+
+            if (res.size() == 0) {
+                Log.i("gps", "no data were read from DB");
+                break;
+            }
+
+            JSONObject locList = new JSONObject();
+            JSONArray dlpLocList = new JSONArray();
+            long firstId = 0L;
+            long lastId = 0L;
+            try {
+
+                JSONObject dlpLoc = null;
+                for (String s : res) {
+                    dlpLoc = new JSONObject(s);
+                    dlpLocList.put(dlpLoc);
+                    if (firstId == 0L) {
+                        firstId = (Long)dlpLoc.get("ts");
+                    }
+                }
+                lastId = (Long)dlpLoc.get("ts");
+
+                locList.put("ll", dlpLocList);
+                locList.put("plNo", "6YIT551");
+                locList.put("ts", System.currentTimeMillis());
+
+            } catch (JSONException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+            // send data
+            cnt++;
+            String locListJson = locList.toString();
+            Log.i("gps", "batch " + cnt + ": " + locListJson);
+
+            SendLocationListTask sendTask = new SendLocationListTask();
+            sendTask.execute(locListJson);
+
+            // if (sendRes) {
+            // Log.i("gps", "batch " + cnt + " was sent");
+            //
+            // // delete data from DB
+            // Log.i("gps", "deleting batch " + cnt + "; firstId: " + firstId +
+            // ", lastId: "
+            // + lastId);
+            // // dao.delLocations(firstId, lastId);
+            // }
+        }
+    }
+
+    private class SendLocationListTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... json) {
+            String locListJson = json[0];
+            boolean sendRes = netService.sendLocationList(locListJson);
+            return "" + sendRes;
+        }
+
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+            Log.i("gps", "sent res: " + result);
+        }
+    }
+
 }
