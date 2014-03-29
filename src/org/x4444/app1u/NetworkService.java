@@ -1,6 +1,7 @@
 
 package org.x4444.app1u;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,51 +28,48 @@ public class NetworkService {
         this.ctx = ctx;
     }
 
-    public boolean sendLocationList(String json) {
+    public void sendLocationList(String json) throws IOException {
         ConnectivityManager connMgr = (ConnectivityManager)a
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            HttpURLConnection urlConnection = null;
-            try {
-                URL locationUrl = new URL(locationUrlStr);
-                urlConnection = (HttpURLConnection)locationUrl.openConnection();
-                urlConnection.setDoOutput(true);
-                urlConnection.addRequestProperty("Content-Type", "application/json");
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            throw new IOException("networkInfo is not connected");
+        }
+        HttpURLConnection urlConnection = null;
+        try {
+            URL locationUrl = new URL(locationUrlStr);
+            urlConnection = (HttpURLConnection)locationUrl.openConnection();
+            urlConnection.setDoOutput(true);
+            urlConnection.setConnectTimeout(3000);
+            urlConnection.addRequestProperty("Content-Type", "application/json");
 
-                byte[] jsonBytes = json.getBytes(utf8);
-                Log.i("gps", "body length: " + jsonBytes.length);
-                urlConnection.setFixedLengthStreamingMode(jsonBytes.length);
-                // Log.i("gps", "connecting");
-                // urlConnection.connect();
-                Log.i("gps", "getting output stream");
-                OutputStream out = urlConnection.getOutputStream();
-                Log.i("gps", "out: " + out);
-                out.write(jsonBytes);
+            byte[] jsonBytes = json.getBytes(utf8);
+            Log.i("gps", "body length: " + jsonBytes.length);
+            urlConnection.setFixedLengthStreamingMode(jsonBytes.length);
+            // Log.i("gps", "connecting");
+            // urlConnection.connect();
+            Log.i("gps", "getting output stream");
+            OutputStream out = urlConnection.getOutputStream();
+            Log.i("gps", "out: " + out);
+            out.write(jsonBytes);
 
-                int responseCode = urlConnection.getResponseCode();
-                Log.i("gps", "resp code: " + responseCode);
-                if (responseCode < 200 || responseCode >= 300) {
-                    return false;
-                }
-                byte[] respMsg = new byte[100];
-                int respLen = urlConnection.getInputStream().read(respMsg);
-                String resp = new String(respMsg, 0, respLen);
-                Log.i("gps", "resp msg: " + resp);
-
-            } catch (Exception e) {
-                Log.e("gps", "network error: " + e.getMessage(), e);
-                return false;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
+            int responseCode = urlConnection.getResponseCode();
+            Log.i("gps", "resp code: " + responseCode);
+            if (responseCode < 200 || responseCode >= 300) {
+                throw new IOException("bad response code: " + responseCode);
             }
+            byte[] respMsg = new byte[100];
+            int respLen = urlConnection.getInputStream().read(respMsg);
+            String resp = new String(respMsg, 0, respLen);
+            Log.i("gps", "resp msg: " + resp);
 
-            return true;
-        } else {
-            Log.w("gsp", "network not connected");
-            return false;
+        } catch (IOException e) {
+            Log.e("gps", "network error: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
         }
 
     }

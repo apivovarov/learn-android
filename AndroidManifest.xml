@@ -15,7 +15,9 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/flower" >
-        <activity
+
+        <!--
+        activity
             android:name="org.x4444.app1u.MainActivity"
             android:label="@string/title_home"
             android:theme="@style/CustomActionBarTheme" >
@@ -24,15 +26,30 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity
+        -->
+
         <activity
+            android:name="org.x4444.app1u.GpsDbNetActivity"
+            android:label="@string/title_home"
+            android:theme="@style/CustomActionBarTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+        activity
             android:name="org.x4444.app1u.DisplayMessageActivity"
             android:label="@string/title_activity_display_message"
             android:theme="@style/CustomActionBarTheme" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.x4444.app1u.MainActivity" />
-        </activity>
+        </activity
+        -->
     </application>
 
 </manifest>

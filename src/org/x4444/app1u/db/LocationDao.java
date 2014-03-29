@@ -135,4 +135,22 @@ public class LocationDao {
             throw new RuntimeException(e);
         }
     }
+
+    public int getCount() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        try {
+            Log.i("gps", "select count");
+            Cursor c = db.rawQuery("select " + COLUMN_NAME_KEY + " from " + TABLE_NAME, null);
+            Log.i("gps", "" + c);
+            if (c != null) {
+                int cnt = c.getCount();
+                Log.i("gps", "count: " + cnt);
+                return cnt;
+            }
+            return 0;
+        } finally {
+            db.close();
+            Log.d("gps", "db closed");
+        }
+    }
 }
