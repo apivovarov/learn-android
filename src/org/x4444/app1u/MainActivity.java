@@ -62,6 +62,8 @@ public class MainActivity extends Activity {
 
     NetworkService netService;
 
+    String plateNo = "6YIT551";
+
     static class MyLocationListener implements LocationListener {
 
         MainActivity mainActivity;
@@ -272,13 +274,18 @@ public class MainActivity extends Activity {
     }
 
     public void button4Click(View view) {
+        SendLocationListTask sendTask = new SendLocationListTask();
+        sendTask.execute();
+    }
+
+    protected boolean readAndSendLocations() {
         Log.i("gps", "dao: " + dao);
 
         boolean more = true;
         int cnt = 0;
         while (more) {
             List<String> res = new ArrayList<String>();
-            more = dao.getFirstNLocations(res, 5);
+            more = dao.getFirstNLocations(res, 10);
             more = false;
 
             if (res.size() == 0) {
@@ -303,7 +310,7 @@ public class MainActivity extends Activity {
                 lastId = (Long)dlpLoc.get("ts");
 
                 locList.put("ll", dlpLocList);
-                locList.put("plNo", "6YIT551");
+                locList.put("plNo", plateNo);
                 locList.put("ts", System.currentTimeMillis());
 
             } catch (JSONException e) {
@@ -314,33 +321,31 @@ public class MainActivity extends Activity {
             String locListJson = locList.toString();
             Log.i("gps", "batch " + cnt + ": " + locListJson);
 
-            SendLocationListTask sendTask = new SendLocationListTask();
-            sendTask.execute(locListJson);
-
-            // if (sendRes) {
-            // Log.i("gps", "batch " + cnt + " was sent");
-            //
-            // // delete data from DB
-            // Log.i("gps", "deleting batch " + cnt + "; firstId: " + firstId +
-            // ", lastId: "
-            // + lastId);
-            // // dao.delLocations(firstId, lastId);
-            // }
+            boolean sendRes = netService.sendLocationList(locListJson);
+            Log.i("gps", "sent res: " + sendRes);
+            if (sendRes) {
+                Log.i("gps", "deleting batch " + cnt + "; firstId: " + firstId + ", lastId: "
+                        + lastId);
+                dao.delLocations(firstId, lastId);
+            } else {
+                return false;
+            }
         }
+        return true;
     }
 
-    private class SendLocationListTask extends AsyncTask<String, Void, String> {
+    private class SendLocationListTask extends AsyncTask<Object, Void, Boolean> {
         @Override
-        protected String doInBackground(String... json) {
-            String locListJson = json[0];
-            boolean sendRes = netService.sendLocationList(locListJson);
-            return "" + sendRes;
+        protected Boolean doInBackground(Object... params) {
+            boolean res = readAndSendLocations();
+            return res;
         }
 
         // onPostExecute displays the results of the AsyncTask.
         @Override
-        protected void onPostExecute(String result) {
-            Log.i("gps", "sent res: " + result);
+        protected void onPostExecute(Boolean result) {
+
+            // makeShortToast("sent result: " + result).show();
         }
     }
 

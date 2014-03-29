@@ -51,7 +51,9 @@ public class NetworkService {
 
                 int responseCode = urlConnection.getResponseCode();
                 Log.i("gps", "resp code: " + responseCode);
-
+                if (responseCode < 200 || responseCode >= 300) {
+                    return false;
+                }
                 byte[] respMsg = new byte[100];
                 int respLen = urlConnection.getInputStream().read(respMsg);
                 String resp = new String(respMsg, 0, respLen);

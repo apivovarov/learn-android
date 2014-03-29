@@ -23,8 +23,6 @@ public class LocationDao {
 
     PlateDbHelper dbHelper;
 
-    // SQLiteDatabase db;
-
     static LocationDao instance = new LocationDao();
 
     public static LocationDao getInstance() {
@@ -45,6 +43,7 @@ public class LocationDao {
 
         String json = o.toString();
         Log.d("gps", "json: " + json);
+        Log.i("gps", "loc.time: " + loc.getTime());
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_KEY, loc.getTime());
         values.put(COLUMN_NAME_VALUE, json);
@@ -67,6 +66,7 @@ public class LocationDao {
      * @return true is more data available
      */
     public boolean getFirstNLocations(List<String> res, int n) {
+        Log.i("gps", "getFirstNLocations, n: " + n);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         try {
             String[] columns = new String[] {
@@ -78,7 +78,7 @@ public class LocationDao {
             if (exist) {
                 Log.i("gps", "first row exists");
             }
-            while (exist && res.size() <= n) {
+            while (exist && res.size() < n) {
                 String v = c.getString(0);
                 res.add(v);
                 Log.i("gps", v);
