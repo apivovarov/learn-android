@@ -16,8 +16,8 @@
     <string name="button1">Pin A</string>
     <string name="button2">Pin B</string>
     <string name="button3">Save to DB</string>
-    <string name="buttonSelectCount">count</string>
-    <string name="button4">Send 10 locs to server</string>
+    <string name="buttonSelectCount">DB count</string>
+    <string name="button4">Send 40 locs to server</string>
     <string name="button5">Add 5 sec GPS Listener</string>
     <string name="button6">Remove it</string>
     <string name="textView1">TextView1</string>

@@ -8,16 +8,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.x4444.app1u.db.LocationDao;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -26,94 +24,83 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-@SuppressLint("ShowToast")
 public class GpsDbNetActivity extends Activity {
 
-    ContentResolver contentResolver;
+    static int SEND_BATCH_SIZE = 40;
 
-    LocationManager locMngr;
+    static Context appContext;
 
-    MyLocationListener locListener;
+    static LocationManager locMngr;
 
-    TextView textLatLon;
+    static MyLocationListener locListener;
 
-    NoGpsDialogFragment dia;
+    static LocationDao dao;
 
-    Toast gpsEnabledToast;
+    static ConnectivityManager connManager;
 
-    Toast gpsDisabledToast;
+    static NetworkService netService;
 
-    Toast gpsListenerAddedToast;
+    static final String plateNo = "6YIT551";
 
-    Toast gpsListenerRemovedToast;
+    static int gpsCnt;
 
-    LocationDao dao;
-
-    NetworkService netService;
-
-    String plateNo = "6YIT551";
-
-    TextView textGpsCnt;
-
-    TextView textSendCnt;
-
-    TextView textSelectCnt;
-
-    int gpsCnt;
-
-    int sendCnt;
-
-    boolean gpsListen;
+    static int sendCnt;
 
     static class MyLocationListener implements LocationListener {
 
         GpsDbNetActivity gpsDbNetActivity;
 
-        TextView textLatLon;
-
-        public MyLocationListener(GpsDbNetActivity gpsDbNetActivity) {
-            this.gpsDbNetActivity = gpsDbNetActivity;
+        public MyLocationListener() {
         }
 
-        public void init(TextView textLatLon) {
-            this.textLatLon = textLatLon;
+        public void setActivity(GpsDbNetActivity gpsDbNetActivity) {
+            this.gpsDbNetActivity = gpsDbNetActivity;
         }
 
         @Override
         public void onLocationChanged(Location loc) {
-            if (loc != null) {
-                gpsDbNetActivity.logLocation("onLocationChanged", loc);
-                gpsDbNetActivity.updateTextLatLon(textLatLon, loc);
-                gpsDbNetActivity.saveLastKnownLocation();
-                gpsDbNetActivity.gpsCnt++;
-                gpsDbNetActivity.textGpsCnt.setText(String.valueOf(gpsDbNetActivity.gpsCnt));
+            try {
+                if (loc != null) {
+                    logLocation("onLocationChanged", loc);
+                    dao.saveLocation(loc);
+                    gpsCnt++;
+                    Log.i("gps", "loc saved");
+                    if (gpsDbNetActivity != null) {
+                        gpsDbNetActivity.updateTextLatLon(loc);
+                        gpsDbNetActivity.updateTextGpsCnt();
+                    }
+                }
+            } catch (RuntimeException e) {
+                Log.e("gps", e.getMessage(), e);
+                showToast(e.getMessage(), Toast.LENGTH_LONG);
             }
         }
 
         @Override
         public void onProviderDisabled(String provider) {
-            gpsDbNetActivity.gpsDisabledToast.show();
             Log.i("gps", "gps provider disabled: " + provider);
         }
 
         @Override
         public void onProviderEnabled(String provider) {
-            gpsDbNetActivity.gpsEnabledToast.show();
             Log.i("gps", "gps provider enabled: " + provider);
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.i("gps", "gps status: " + status);
-            gpsDbNetActivity.makeToast("GPS status: " + status, Toast.LENGTH_LONG).show();
+            showToast("GPS status: " + status, Toast.LENGTH_LONG);
         }
+    }
+
+    public GpsDbNetActivity() {
+        Log.i("gps", "constructor");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         Log.i("gps", "onPause");
-        // locMngr.removeUpdates(locListener);
     }
 
     @Override
@@ -135,33 +122,46 @@ public class GpsDbNetActivity extends Activity {
     }
 
     protected void listenGps() {
-        List<String> provs = locMngr.getProviders(true);
-        Log.i("gps", "provs: " + provs);
-        boolean isLocationProviderEnabled = Settings.Secure.isLocationProviderEnabled(
-                contentResolver, LocationManager.GPS_PROVIDER);
-        Log.i("gps", "isLocationProviderEnabled: " + isLocationProviderEnabled);
+        // List<String> provs = locMngr.getProviders(true);
+        // Log.i("gps", "provs: " + provs);
+        // ContentResolver contentResolver =
+        // getBaseContext().getContentResolver();
+        // boolean isLocationProviderEnabled =
+        // Settings.Secure.isLocationProviderEnabled(
+        // contentResolver, LocationManager.GPS_PROVIDER);
+        // Log.i("gps", "isLocationProviderEnabled: " +
+        // isLocationProviderEnabled);
 
-        if (!gpsListen) {
+        if (locListener == null) {
+
+            locListener = new MyLocationListener();
+            locListener.setActivity(this);
+            Log.i("gps", "locListener: " + locListener);
+            // TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
+            // Log.i("gps", "textLatLon: " + textLatLon);
+
             locMngr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0f, locListener);
-            gpsListen = true;
-            gpsListenerAddedToast.show();
+            showShortToast("gps listener added");
             Log.i("gps", "gps listener added");
         }
-        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (loc != null) {
-            updateTextLatLon(textLatLon, loc);
-        }
+        // Location loc =
+        // locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        // if (loc != null) {
+        // updateTextLatLon(textLatLon, loc);
+        // }
 
-        if (!isLocationProviderEnabled) {
-            dia.show(getFragmentManager(), "nogps");
-        }
+        // if (!isLocationProviderEnabled) {
+        // NoGpsDialogFragment dia = new NoGpsDialogFragment();
+        // dia.show(getFragmentManager(), "nogps");
+        // }
     }
 
     protected void stopListenGps() {
-        if (gpsListen) {
+        if (locListener != null) {
             locMngr.removeUpdates(locListener);
-            gpsListen = false;
-            gpsListenerRemovedToast.show();
+            locListener = null;
+            gpsCnt = 0;
+            showShortToast("gps listener removed");
             Log.i("gps", "gps listener removed");
         }
     }
@@ -171,31 +171,36 @@ public class GpsDbNetActivity extends Activity {
         super.onCreate(savedInstanceState);
         Log.i("gps", "onCreate");
 
-        dia = new NoGpsDialogFragment();
-        contentResolver = getBaseContext().getContentResolver();
-
-        locMngr = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-
         setContentView(R.layout.gpsdbnet);
 
-        locListener = new MyLocationListener(this);
-        TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
-        locListener.init(textLatLon);
+        if (appContext == null) {
+            Log.i("gps", "app context is null");
+            appContext = getApplicationContext();
+        } else {
+            Log.i("gps", "app context is not null");
+        }
 
-        textGpsCnt = (TextView)findViewById(R.id.textGpsCnt);
-        textSendCnt = (TextView)findViewById(R.id.textSendCnt);
-        textSelectCnt = (TextView)findViewById(R.id.textSelectCount);
+        if (locMngr == null) {
+            locMngr = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        }
 
-        gpsEnabledToast = makeShortToast("GPS Enabled");
-        gpsDisabledToast = makeShortToast("GPS Disabled");
-        gpsListenerAddedToast = makeShortToast("gps listener added");
-        gpsListenerRemovedToast = makeShortToast("gps listener removed");
+        if (connManager == null) {
+            connManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        }
 
-        Context context = getApplicationContext();
-        dao = LocationDao.getInstance();
-        dao.init(context);
+        if (dao == null) {
+            dao = LocationDao.getInstance();
+            dao.init(appContext);
+        }
 
-        netService = new NetworkService(this, context);
+        if (netService == null) {
+            netService = new NetworkService(connManager);
+        }
+
+        if (locListener != null) {
+            locListener.setActivity(this);
+        }
+        Log.i("gps", "onCreate done");
     }
 
     @Override
@@ -219,7 +224,8 @@ public class GpsDbNetActivity extends Activity {
 
     }
 
-    protected void updateTextLatLon(TextView textLatLon, Location loc) {
+    protected void updateTextLatLon(Location loc) {
+        TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
         if (textLatLon != null) {
             String alt = "" + loc.getAltitude();
             if (alt.length() > 10) {
@@ -229,34 +235,17 @@ public class GpsDbNetActivity extends Activity {
         }
     }
 
-    protected void logLocation(String eventDesc, Location loc) {
+    public static void logLocation(String eventDesc, Location loc) {
         Log.i("gps", eventDesc + ". latlon: " + loc.getLatitude() + "," + loc.getLongitude()
-                + " alt: " + loc.getAltitude());
+                + " alt: " + loc.getAltitude() + " time: " + loc.getTime());
     }
 
-    public Toast makeShortToast(String msg) {
-        return makeToast(msg, Toast.LENGTH_SHORT);
+    public static void showShortToast(String msg) {
+        showToast(msg, Toast.LENGTH_SHORT);
     }
 
-    public Toast makeToast(String msg, int duration) {
-        Context context = getApplicationContext();
-        Toast toast = Toast.makeText(context, msg, duration);
-        return toast;
-    }
-
-    public void button3Click(View view) {
-        saveLastKnownLocation();
-    }
-
-    protected void saveLastKnownLocation() {
-        Log.i("gps", "dao: " + dao);
-
-        Location loc = locMngr.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (loc != null) {
-            Log.i("gps", "loc saving");
-            dao.saveLocation(loc);
-            Log.i("gps", "loc saved");
-        }
+    public static void showToast(String msg, int duration) {
+        Toast.makeText(appContext, msg, duration).show();
     }
 
     public void button4Click(View view) {
@@ -273,20 +262,17 @@ public class GpsDbNetActivity extends Activity {
     }
 
     public void buttonSelectCountClick(View view) {
-        Log.i("gps", "dao: " + dao);
         int cnt = dao.getCount();
-        textSelectCnt.setText(String.valueOf(cnt));
+        updateTextSelectCount(cnt, null);
     }
 
     protected String readAndSendLocations() {
         try {
-            Log.i("gps", "dao: " + dao);
-
             boolean more = true;
             int cnt = 0;
             while (more) {
                 List<String> res = new ArrayList<String>();
-                more = dao.getFirstNLocations(res, 10);
+                more = dao.getFirstNLocations(res, SEND_BATCH_SIZE);
                 more = false;
 
                 if (res.size() == 0) {
@@ -341,9 +327,9 @@ public class GpsDbNetActivity extends Activity {
         @Override
         protected void onPostExecute(String result) {
             if (result == null) {
-                textSendCnt.setText(String.valueOf(sendCnt));
+                updateTextSentCnt();
             } else {
-                makeShortToast("sent result: " + result).show();
+                showToast("err: " + result, Toast.LENGTH_LONG);
             }
         }
     }
@@ -352,7 +338,48 @@ public class GpsDbNetActivity extends Activity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             stopListenGps();
+            sendCnt = 0;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
+        String latLon = textLatLon.getText().toString();
+        outState.putString("latlon", latLon);
+
+        TextView textSelectCount = (TextView)findViewById(R.id.textSelectCount);
+        outState.putString("selectCount", textSelectCount.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String latLon = savedInstanceState.getString("latlon");
+        TextView textLatLon = (TextView)findViewById(R.id.textLatLon);
+        textLatLon.setText(latLon);
+
+        updateTextGpsCnt();
+        updateTextSentCnt();
+
+        String selectCount = savedInstanceState.getString("selectCount");
+        updateTextSelectCount(0, selectCount);
+    }
+
+    protected void updateTextGpsCnt() {
+        TextView textGpsCnt = (TextView)findViewById(R.id.textGpsCnt);
+        textGpsCnt.setText(String.valueOf(gpsCnt));
+    }
+
+    protected void updateTextSentCnt() {
+        TextView textSendCnt = (TextView)findViewById(R.id.textSendCnt);
+        textSendCnt.setText(String.valueOf(sendCnt));
+    }
+
+    protected void updateTextSelectCount(int cnt, String cntStr) {
+        TextView textSelectCnt = (TextView)findViewById(R.id.textSelectCount);
+        textSelectCnt.setText(cntStr == null ? String.valueOf(cnt) : cntStr);
     }
 }

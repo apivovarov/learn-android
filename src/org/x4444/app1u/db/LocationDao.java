@@ -81,7 +81,6 @@ public class LocationDao {
             while (exist && res.size() < n) {
                 String v = c.getString(0);
                 res.add(v);
-                Log.i("gps", v);
                 exist = c.moveToNext();
             }
             return exist;

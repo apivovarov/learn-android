@@ -7,30 +7,23 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 
-import android.app.Activity;
-import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
 public class NetworkService {
 
-    Activity a;
-
-    Context ctx;
+    final ConnectivityManager connMgr;
 
     String locationUrlStr = "http://172.31.60.250:8080/dlp-proxy-server/rest/location/save";
 
     Charset utf8 = Charset.forName("UTF-8");
 
-    public NetworkService(Activity a, Context ctx) {
-        this.a = a;
-        this.ctx = ctx;
+    public NetworkService(ConnectivityManager connMgr) {
+        this.connMgr = connMgr;
     }
 
     public void sendLocationList(String json) throws IOException {
-        ConnectivityManager connMgr = (ConnectivityManager)a
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo == null || !networkInfo.isConnected()) {
             throw new IOException("networkInfo is not connected");
@@ -71,7 +64,5 @@ public class NetworkService {
                 urlConnection.disconnect();
             }
         }
-
     }
-
 }
