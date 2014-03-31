@@ -286,14 +286,19 @@ public class GpsDbNetActivity extends Activity {
                 long lastId = 0L;
 
                 JSONObject dlpLoc = null;
+                long dlpLocTs = 0L;
                 for (String s : res) {
                     dlpLoc = new JSONObject(s);
-                    dlpLocList.put(dlpLoc);
+                    dlpLocTs = dlpLoc.getLong("ts");
+                    // valid time 01/01/2014 - 01/01/2050
+                    if (dlpLocTs >= 1388534400000L && dlpLocTs < 2524608000000L) {
+                        dlpLocList.put(dlpLoc);
+                    }
                     if (firstId == 0L) {
-                        firstId = (Long)dlpLoc.get("ts");
+                        firstId = dlpLocTs;
                     }
                 }
-                lastId = (Long)dlpLoc.get("ts");
+                lastId = dlpLocTs;
 
                 locList.put("ll", dlpLocList);
                 locList.put("plNo", plateNo);
