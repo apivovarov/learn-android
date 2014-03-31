@@ -46,6 +46,16 @@ public class GpsDbNetActivity extends Activity {
 
     static int sendCnt;
 
+    static void cleanAll() {
+        stopListenGps();
+        sendCnt = 0;
+        netService = null;
+        dao = null;
+        connManager = null;
+        locMngr = null;
+        appContext = null;
+    }
+
     static class MyLocationListener implements LocationListener {
 
         GpsDbNetActivity gpsDbNetActivity;
@@ -156,7 +166,7 @@ public class GpsDbNetActivity extends Activity {
         // }
     }
 
-    protected void stopListenGps() {
+    static void stopListenGps() {
         if (locListener != null) {
             locMngr.removeUpdates(locListener);
             locListener = null;
@@ -342,8 +352,7 @@ public class GpsDbNetActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            stopListenGps();
-            sendCnt = 0;
+            cleanAll();
         }
         return super.onKeyDown(keyCode, event);
     }

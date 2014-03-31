@@ -55,10 +55,6 @@ public class NetworkService {
             int respLen = urlConnection.getInputStream().read(respMsg);
             String resp = new String(respMsg, 0, respLen);
             Log.i("gps", "resp msg: " + resp);
-
-        } catch (IOException e) {
-            Log.e("gps", "network error: " + e.getMessage(), e);
-            throw e;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
