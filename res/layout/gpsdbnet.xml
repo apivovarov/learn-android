@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/topPanel"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:focusable="true"
@@ -30,6 +31,25 @@
             android:layout_height="wrap_content"
             android:onClick="button6Click"
             android:text="@string/button6" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/editPlateNo"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/editPlateNo" />
+
+        <Button
+            android:id="@+id/buttonSavePlateNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="buttonSavePlateNo"
+            android:text="@string/buttonSavePlateNo" />
     </LinearLayout>
 
     <LinearLayout

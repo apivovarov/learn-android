@@ -10,6 +10,7 @@ import org.x4444.app1u.db.LocationDao;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -21,6 +22,9 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +44,7 @@ public class GpsDbNetActivity extends Activity {
 
     static NetworkService netService;
 
-    static final String plateNo = "6YIT551";
+    String plateNo;
 
     static int gpsCnt;
 
@@ -210,6 +214,11 @@ public class GpsDbNetActivity extends Activity {
         if (locListener != null) {
             locListener.setActivity(this);
         }
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        plateNo = sharedPref.getString("plateno", "6YIT551");
+        EditText editPlateNo = (EditText)findViewById(R.id.editPlateNo);
+        editPlateNo.setText(plateNo);
+
         Log.i("gps", "onCreate done");
     }
 
@@ -272,8 +281,39 @@ public class GpsDbNetActivity extends Activity {
     }
 
     public void buttonSelectCountClick(View view) {
-        int cnt = dao.getCount();
-        updateTextSelectCount(cnt, null);
+        try {
+            int cnt = dao.getCount();
+            updateTextSelectCount(cnt, null);
+            showShortToast("count: " + cnt);
+        } catch (RuntimeException e) {
+            showShortToast("err: " + e.getMessage());
+        }
+    }
+
+    public void buttonSavePlateNo(View view) {
+        savePlateNo();
+    }
+
+    protected void savePlateNo() {
+        EditText editPlateNo = (EditText)findViewById(R.id.editPlateNo);
+        String plateNo0 = editPlateNo.getText().toString();
+
+        if (plateNo0 == null || (plateNo0 = plateNo0.trim()).isEmpty()) {
+            showShortToast("plateNo is empty");
+            return;
+        }
+
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("plateno", plateNo0);
+        boolean res = editor.commit();
+        showShortToast("commited: " + res);
+        if (res) {
+            plateNo = plateNo0;
+            LinearLayout topPanel = (LinearLayout)findViewById(R.id.topPanel);
+            topPanel.requestFocus();
+            toggleSoftInput();
+        }
     }
 
     protected String readAndSendLocations() {
@@ -395,5 +435,10 @@ public class GpsDbNetActivity extends Activity {
     protected void updateTextSelectCount(int cnt, String cntStr) {
         TextView textSelectCnt = (TextView)findViewById(R.id.textSelectCount);
         textSelectCnt.setText(cntStr == null ? String.valueOf(cnt) : cntStr);
+    }
+
+    protected void toggleSoftInput() {
+        InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
     }
 }
