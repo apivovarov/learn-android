@@ -14,7 +14,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/flower" >
+        android:icon="@drawable/gps_searching" >
 
         <!--
         activity
