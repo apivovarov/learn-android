@@ -2,6 +2,8 @@
 <resources>
 
     <string name="title_home">App1u</string>
+    <string name="textGpsUpdatesStatusLabel">GPS updates status:</string>
+    <string name="textGpsUpdatesStatus">-</string>
     <string name="textPointA">Point A:</string>
     <string name="textPointB">Point B:</string>
     <string name="editLat1">Lat A</string>
@@ -20,8 +22,9 @@
     <string name="button3">Save to DB</string>
     <string name="buttonSelectCount">DB count</string>
     <string name="button4">Send 40 locs to server</string>
-    <string name="button5">Add 5 sec GPS Listener</string>
-    <string name="button6">Remove it</string>
+    <string name="buttonListenGps5">5 sec</string>
+    <string name="buttonListenGps180">180 sec</string>
+    <string name="button6">Stop updates</string>
     <string name="textView1">TextView1</string>
     <string name="textGpsCnt">0</string>
     <string name="textSendCnt">0</string>

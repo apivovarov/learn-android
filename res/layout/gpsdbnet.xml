@@ -11,6 +11,7 @@
         android:id="@+id/textLatLon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:freezesText="true"
         android:text="@string/textLatLon" />
 
     <LinearLayout
@@ -18,12 +19,38 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
-        <Button
-            android:id="@+id/button5"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="button5Click"
-            android:text="@string/button5" />
+            android:paddingRight="4dp"
+            android:text="@string/textGpsUpdatesStatusLabel" />
+
+        <TextView
+            android:id="@+id/textGpsUpdatesStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:freezesText="true"
+            android:text="@string/textGpsUpdatesStatus" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/buttonListenGps5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="buttonListenGps5"
+            android:text="@string/buttonListenGps5" />
+
+        <Button
+            android:id="@+id/buttonListenGps180"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="buttonListenGps180"
+            android:text="@string/buttonListenGps180" />
 
         <Button
             android:id="@+id/button6"
@@ -80,12 +107,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="GPS listener counter: " />
+            android:paddingRight="4dp"
+            android:text="GPS listener counter:" />
 
         <TextView
             android:id="@+id/textGpsCnt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:freezesText="true"
             android:text="@string/textGpsCnt" />
     </LinearLayout>
 
@@ -97,12 +126,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send counter: " />
+            android:paddingRight="4dp"
+            android:text="Send counter:" />
 
         <TextView
             android:id="@+id/textSendCnt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:freezesText="true"
             android:text="@string/textSendCnt" />
     </LinearLayout>
 
@@ -114,12 +145,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select count(*): " />
+            android:paddingRight="4dp"
+            android:text="Select count(*):" />
 
         <TextView
             android:id="@+id/textSelectCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:freezesText="true"
             android:text="@string/textSelectCount" />
     </LinearLayout>
 
