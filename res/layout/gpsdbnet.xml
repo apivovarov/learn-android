@@ -85,6 +85,13 @@
         android:orientation="horizontal" >
 
         <Button
+            android:id="@+id/buttonRefreshCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="buttonRefreshCountClick"
+            android:text="@string/buttonRefreshCount" />
+
+        <Button
             android:id="@+id/buttonSelectCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

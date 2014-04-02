@@ -35,7 +35,7 @@ public class LocationDao {
 
     public void init(Context context) {
         dbHelper = new PlateDbHelper(context);
-        Log.d("gps", "init done");
+        Log.i("gps", "LocationDao init done");
     }
 
     public void saveLocation(Location loc) {

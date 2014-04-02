@@ -36,7 +36,5 @@ public class PlateDbHelper extends SQLiteOpenHelper {
 
     public PlateDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-
     }
-
 }

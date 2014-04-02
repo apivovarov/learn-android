@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name=".App1uApp"
         android:allowBackup="true"
         android:icon="@drawable/starthere" >
 
@@ -40,6 +41,15 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name="org.x4444.app1u.loc.LocationService"
+            android:enabled="true" >
+        </service>
+        <service
+            android:name="org.x4444.app1u.net.NetworkService"
+            android:enabled="true" >
+        </service>
+
         <!--
         activity
             android:name="org.x4444.app1u.DisplayMessageActivity"
@@ -50,6 +60,7 @@
                 android:value="org.x4444.app1u.MainActivity" />
         </activity
         -->
+
     </application>
 
 </manifest>
