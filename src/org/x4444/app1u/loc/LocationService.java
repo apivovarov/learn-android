@@ -90,6 +90,7 @@ public class LocationService extends Service {
             if (App1uApp.gpsLocListener != null) {
                 getLocationManager().removeUpdates(App1uApp.gpsLocListener);
                 App1uApp.gpsLocListener = null;
+                App1uApp.gpsFreq = -1;
                 Log.i("gps", "LocationListener removed");
             }
         } catch (RuntimeException e) {
