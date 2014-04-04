@@ -1,7 +1,6 @@
 
 package org.x4444.app1u;
 
-import org.x4444.app1u.db.LocationDao;
 import org.x4444.app1u.loc.LocationService;
 import org.x4444.app1u.net.NetworkService;
 
@@ -10,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -38,6 +36,7 @@ public class GpsDbNetActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        refreshAll();
         Log.i("gps", "onResume");
     }
 
@@ -53,8 +52,9 @@ public class GpsDbNetActivity extends Activity {
         Log.i("gps", "onStop");
     }
 
-    protected void updateGspUpdateStatusText(String status) {
+    protected void updateGspUpdateStatusText() {
         TextView textGpsStatus = (TextView)findViewById(R.id.textGpsUpdatesStatus);
+        String status = App1uApp.gpsFreq > 0 ? (App1uApp.gpsFreq / 1000 + " sec") : "-";
         textGpsStatus.setText(status);
     }
 
@@ -64,10 +64,6 @@ public class GpsDbNetActivity extends Activity {
         Log.i("gps", "onCreate");
 
         setContentView(R.layout.gpsdbnet);
-
-        updateTextGpsCnt();
-        updateTextSentCnt();
-        updateTextLatLon(App1uApp.lastLocation);
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         App1uApp.plateNo = sharedPref.getString(C.PLATE_NO, "6YIT551");
@@ -119,7 +115,7 @@ public class GpsDbNetActivity extends Activity {
         Toast.makeText(getApplicationContext(), msg, duration).show();
     }
 
-    public void button4Click(View view) {
+    public void buttonSendClick(View view) {
         Intent networkServIntent = new Intent(this, NetworkService.class);
         startService(networkServIntent);
     }
@@ -132,24 +128,20 @@ public class GpsDbNetActivity extends Activity {
         startLocationService(180000);
     }
 
-    public void button6Click(View view) {
+    public void buttonStopGpsClick(View view) {
         stopLocationService();
     }
 
     public void buttonRefreshCountClick(View view) {
+        refreshAll();
+    }
+
+    protected void refreshAll() {
+        updateGspUpdateStatusText();
         updateTextGpsCnt();
         updateTextSentCnt();
         updateTextLatLon(App1uApp.lastLocation);
-    }
-
-    public void buttonSelectCountClick(View view) {
-        try {
-            int cnt = LocationDao.getInstance().getCount();
-            updateTextSelectCount(cnt, null);
-            showShortToast("count: " + cnt);
-        } catch (RuntimeException e) {
-            showShortToast("err: " + e.getMessage());
-        }
+        updateTextDbLocationCount();
     }
 
     public void buttonSavePlateNo(View view) {
@@ -160,14 +152,13 @@ public class GpsDbNetActivity extends Activity {
         Intent locationServIntent = new Intent(this, LocationService.class);
         locationServIntent.putExtra(C.GPS_FREQ, gpsFreq);
         startService(locationServIntent);
-        Log.i("gps", "called service start");
-        updateGspUpdateStatusText(gpsFreq / 1000 + " sec");
+        Log.i("gps", "called startService");
     }
 
     protected void stopLocationService() {
         Intent locationServIntent = new Intent(this, LocationService.class);
         stopService(locationServIntent);
-        updateGspUpdateStatusText("-");
+        Log.i("gps", "called stopService");
     }
 
     protected void savePlateNo() {
@@ -192,13 +183,6 @@ public class GpsDbNetActivity extends Activity {
         }
     }
 
-    // @Override
-    // public boolean onKeyDown(int keyCode, KeyEvent event) {
-    // if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-    // }
-    // return super.onKeyDown(keyCode, event);
-    // }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -219,9 +203,10 @@ public class GpsDbNetActivity extends Activity {
         textSendCnt.setText(String.valueOf(App1uApp.sendCnt));
     }
 
-    protected void updateTextSelectCount(int cnt, String cntStr) {
-        TextView textSelectCount = (TextView)findViewById(R.id.textSelectCount);
-        textSelectCount.setText(cntStr == null ? String.valueOf(cnt) : cntStr);
+    protected void updateTextDbLocationCount() {
+        int cnt = App1uApp.locationDao.getCount();
+        TextView textSelectCount = (TextView)findViewById(R.id.textDbLocationCount);
+        textSelectCount.setText(String.valueOf(cnt));
     }
 
     protected void toggleSoftInput() {
@@ -232,10 +217,5 @@ public class GpsDbNetActivity extends Activity {
     protected void hideSoftInput(IBinder windowToken) {
         InputMethodManager inputManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.hideSoftInputFromWindow(windowToken, InputMethodManager.HIDE_NOT_ALWAYS);
-    }
-
-    protected LocationManager getLocationManager() {
-        LocationManager locMngr = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        return locMngr;
     }
 }

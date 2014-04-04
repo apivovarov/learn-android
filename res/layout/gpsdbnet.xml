@@ -53,11 +53,11 @@
             android:text="@string/buttonListenGps180" />
 
         <Button
-            android:id="@+id/button6"
+            android:id="@+id/buttonStopGps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="button6Click"
-            android:text="@string/button6" />
+            android:onClick="buttonStopGpsClick"
+            android:text="@string/buttonStopGps" />
     </LinearLayout>
 
     <LinearLayout
@@ -92,18 +92,11 @@
             android:text="@string/buttonRefreshCount" />
 
         <Button
-            android:id="@+id/buttonSelectCount"
+            android:id="@+id/buttonSend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="buttonSelectCountClick"
-            android:text="@string/buttonSelectCount" />
-
-        <Button
-            android:id="@+id/button4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="button4Click"
-            android:text="@string/button4" />
+            android:onClick="buttonSendClick"
+            android:text="@string/buttonSend" />
     </LinearLayout>
 
     <LinearLayout
@@ -115,7 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="4dp"
-            android:text="GPS listener counter:" />
+            android:text="GPS count:" />
 
         <TextView
             android:id="@+id/textGpsCnt"
@@ -134,14 +127,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="4dp"
-            android:text="Send counter:" />
+            android:text="DB loc count:" />
 
         <TextView
-            android:id="@+id/textSendCnt"
+            android:id="@+id/textDbLocationCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:freezesText="true"
-            android:text="@string/textSendCnt" />
+            android:text="@string/textDbLocationCount" />
     </LinearLayout>
 
     <LinearLayout
@@ -153,14 +146,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="4dp"
-            android:text="Select count(*):" />
+            android:text="Send count:" />
 
         <TextView
-            android:id="@+id/textSelectCount"
+            android:id="@+id/textSendCnt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:freezesText="true"
-            android:text="@string/textSelectCount" />
+            android:text="@string/textSendCnt" />
     </LinearLayout>
 
 </LinearLayout>

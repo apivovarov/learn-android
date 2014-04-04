@@ -1,10 +1,12 @@
 
 package org.x4444.app1u.loc;
 
+import org.x4444.app1u.R;
 import org.x4444.app1u.App1uApp;
 import org.x4444.app1u.C;
-import org.x4444.app1u.db.LocationDao;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +19,9 @@ import android.util.Log;
 
 public class LocationService extends Service {
 
-    MyLocationListener myLocationListener;
+    Notification.Builder notifBuilder;
+
+    static final int NOTIF_ID = 1;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -26,50 +30,75 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("gps", "LocationService onStartCommand: " + this);
-        int res = super.onStartCommand(intent, flags, startId);
         int freq = intent.getIntExtra(C.GPS_FREQ, 5000);
-        removeLocationListener();
+        Log.i("gps", "LocationService onStartCommand, freq: " + freq);
+
+        if (App1uApp.gpsLocListener != null) {
+            removeLocationListener();
+            try {
+                // sleep needed to switch from 3 min to 5 sec gps listener
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+            }
+        }
         addLocationListener(freq);
-        App1uApp.freqStatus = freq + " sec";
-        Log.i("gps", "LocationService started, freq: " + freq);
-        return res;
+
+        notifBuilder.setContentTitle("GPS update freq: " + freq / 1000 + " sec");
+        getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
+
+        App1uApp.gpsFreq = freq;
+
+        return START_STICKY;
     }
 
     @Override
     public void onCreate() {
-        super.onCreate();
         Log.i("gps", "LocationService onCreate: " + this);
-        App1uApp.service1 = this;
+        super.onCreate();
+
+        notifBuilder = new Notification.Builder(App1uApp.context)
+                .setContentTitle("GPS update freq: -").setContentText("")
+                .setSmallIcon(R.drawable.pin_map_gps);
+
+        startForeground(NOTIF_ID, notifBuilder.getNotification());
+        Log.i("gps", "started service in foreground");
     }
 
     @Override
     public void onDestroy() {
         removeLocationListener();
-        App1uApp.freqStatus = "stopped";
         Log.i("gps", "LocationService onDestroy: " + this);
         super.onDestroy();
     }
 
-    private void addLocationListener(final int freq) {
-        LocationManager lm = getLocationManager();
-        myLocationListener = new MyLocationListener();
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, freq, 0f, myLocationListener);
-    }
-
-    protected void removeLocationListener() {
-        if (myLocationListener != null) {
-            getLocationManager().removeUpdates(myLocationListener);
-            myLocationListener = null;
-            Log.i("gps", "LocationListener removed");
+    private void addLocationListener(int freq) {
+        try {
+            LocationManager lm = getLocationManager();
+            App1uApp.gpsLocListener = new GpsLocationListener();
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, freq, 0f,
+                    App1uApp.gpsLocListener);
+            Log.i("gps", "LocationListener added, freq: " + freq);
+        } catch (RuntimeException e) {
+            Log.e("gps", e.getMessage(), e);
         }
     }
 
-    public static void updateLocation(Location location) {
+    protected void removeLocationListener() {
+        try {
+            if (App1uApp.gpsLocListener != null) {
+                getLocationManager().removeUpdates(App1uApp.gpsLocListener);
+                App1uApp.gpsLocListener = null;
+                Log.i("gps", "LocationListener removed");
+            }
+        } catch (RuntimeException e) {
+            Log.e("gps", e.getMessage(), e);
+        }
+    }
+
+    protected void updateLocation(Location location) {
         long locTs = location.getTime();
         if (locTs >= C.MIN_LOC_TS && locTs < C.MAX_LOC_TS) {
-            LocationDao dao = LocationDao.getInstance();
-            dao.saveLocation(location);
+            App1uApp.locationDao.saveLocation(location);
             App1uApp.gpsCnt++;
             App1uApp.lastLocation = location;
         } else {
@@ -77,13 +106,21 @@ public class LocationService extends Service {
         }
     }
 
-    class MyLocationListener implements LocationListener {
+    public class GpsLocationListener implements LocationListener {
 
         @Override
         public void onLocationChanged(Location location) {
-            if (location != null) {
-                logLocation("update", location);
-                updateLocation(location);
+            try {
+                if (location != null) {
+                    logLocation("update", location);
+                    updateLocation(location);
+
+                    notifBuilder.setContentText(location.getLatitude() + ","
+                            + location.getLongitude() + "@" + location.getTime());
+                    getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
+                }
+            } catch (Exception e) {
+                Log.e("gps", e.getMessage(), e);
             }
         }
 
@@ -108,7 +145,12 @@ public class LocationService extends Service {
         return lm;
     }
 
-    public static void logLocation(String eventDesc, Location loc) {
+    protected NotificationManager getNotifMngr() {
+        NotificationManager notifMngr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        return notifMngr;
+    }
+
+    protected void logLocation(String eventDesc, Location loc) {
         Log.i("gps", eventDesc + ". latlon: " + loc.getLatitude() + "," + loc.getLongitude()
                 + " alt: " + loc.getAltitude() + " time: " + loc.getTime());
     }

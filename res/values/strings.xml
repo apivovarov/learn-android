@@ -2,7 +2,7 @@
 <resources>
 
     <string name="title_home">App1u</string>
-    <string name="textGpsUpdatesStatusLabel">GPS updates status:</string>
+    <string name="textGpsUpdatesStatusLabel">GPS update freq:</string>
     <string name="textGpsUpdatesStatus">-</string>
     <string name="textPointA">Point A:</string>
     <string name="textPointB">Point B:</string>
@@ -21,15 +21,14 @@
     <string name="button2">Pin B</string>
     <string name="button3">Save to DB</string>
     <string name="buttonRefreshCount">Refresh</string>
-    <string name="buttonSelectCount">DB cnt</string>
-    <string name="button4">Send 40</string>
+    <string name="buttonSend">Send 100</string>
     <string name="buttonListenGps5">5 sec</string>
     <string name="buttonListenGps180">180 sec</string>
-    <string name="button6">Stop updates</string>
+    <string name="buttonStopGps">Stop GPS</string>
     <string name="textView1">TextView1</string>
     <string name="textGpsCnt">0</string>
     <string name="textSendCnt">0</string>
-    <string name="textSelectCount">0</string>
+    <string name="textDbLocationCount">0</string>
     <string name="title_activity_display_message">App1u - Message</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>

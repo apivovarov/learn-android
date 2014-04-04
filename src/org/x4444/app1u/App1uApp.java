@@ -1,20 +1,19 @@
 
 package org.x4444.app1u;
 
+import org.x4444.app1u.db.PlateDbHelper;
 import org.x4444.app1u.db.LocationDao;
+import org.x4444.app1u.loc.LocationService.GpsLocationListener;
 
 import android.app.Application;
-import android.app.Service;
 import android.content.Context;
 import android.location.Location;
 
 public class App1uApp extends Application {
 
-    private static Context context;
+    public static Context context;
 
-    public static Service service1;
-
-    public static String freqStatus = "none";
+    public static int gpsFreq;
 
     public static int gpsCnt;
 
@@ -24,6 +23,12 @@ public class App1uApp extends Application {
 
     public static Location lastLocation;
 
+    public static GpsLocationListener gpsLocListener;
+
+    public static PlateDbHelper dbHelper;
+
+    public static LocationDao locationDao;
+
     /*
      * (non-Javadoc)
      * @see android.app.Application#onCreate()
@@ -31,7 +36,9 @@ public class App1uApp extends Application {
     @Override
     public void onCreate() {
         App1uApp.context = getApplicationContext();
-        LocationDao.getInstance().init(context);
+
+        dbHelper = new PlateDbHelper(context);
+        locationDao = new LocationDao();
     }
 
     public static Context getAppContext() {

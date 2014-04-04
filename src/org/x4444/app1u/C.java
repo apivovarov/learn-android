@@ -9,7 +9,7 @@ public interface C {
 
     String PLATE_NO = "plateno";
 
-    int SEND_BATCH_SIZE = 40;
+    int SEND_BATCH_SIZE = 100;
 
     long MIN_LOC_TS = 1388534400000L;
 

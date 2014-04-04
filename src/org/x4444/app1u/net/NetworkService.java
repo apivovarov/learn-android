@@ -13,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.x4444.app1u.App1uApp;
 import org.x4444.app1u.C;
-import org.x4444.app1u.db.LocationDao;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -24,9 +23,9 @@ import android.util.Log;
 
 public class NetworkService extends IntentService {
 
-    String locationUrlStr = "http://172.31.60.250:8080/dlp-proxy-server/rest/location/save";
+    public static final String locationUrlStr = "http://172.31.60.250:8080/dlp-proxy-server/rest/location/save";
 
-    Charset utf8 = Charset.forName("UTF-8");
+    public static final Charset utf8 = Charset.forName("UTF-8");
 
     public NetworkService() {
         super("NetwotkServiceWorker");
@@ -48,10 +47,9 @@ public class NetworkService extends IntentService {
         try {
             boolean more = true;
             int cnt = 0;
-            LocationDao dao = LocationDao.getInstance();
             while (more) {
                 List<String> res = new ArrayList<String>();
-                more = dao.getFirstNLocations(res, C.SEND_BATCH_SIZE);
+                more = App1uApp.locationDao.getFirstNLocations(res, C.SEND_BATCH_SIZE);
                 more = false;
 
                 if (res.size() == 0) {
@@ -92,7 +90,7 @@ public class NetworkService extends IntentService {
                 }
                 Log.i("gps", "deleting batch " + cnt + "; firstId: " + firstId + ", lastId: "
                         + lastId);
-                dao.delLocations(firstId, lastId);
+                App1uApp.locationDao.delLocations(firstId, lastId);
                 App1uApp.sendCnt++;
             }
         } catch (Exception e) {

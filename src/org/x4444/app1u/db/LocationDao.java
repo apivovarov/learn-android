@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.x4444.app1u.App1uApp;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
@@ -21,24 +21,7 @@ public class LocationDao {
 
     public static final String COLUMN_NAME_VALUE = "v";
 
-    PlateDbHelper dbHelper;
-
-    static LocationDao instance = new LocationDao();
-
-    public static LocationDao getInstance() {
-        return instance;
-    }
-
-    private LocationDao() {
-
-    }
-
-    public void init(Context context) {
-        dbHelper = new PlateDbHelper(context);
-        Log.i("gps", "LocationDao init done");
-    }
-
-    public void saveLocation(Location loc) {
+    public synchronized void saveLocation(Location loc) {
         JSONObject o = getDlpLocationJson(loc);
 
         String json = o.toString();
@@ -48,7 +31,7 @@ public class LocationDao {
         values.put(COLUMN_NAME_KEY, loc.getTime());
         values.put(COLUMN_NAME_VALUE, json);
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = App1uApp.dbHelper.getWritableDatabase();
         try {
             long rowId = db.insert(TABLE_NAME, null, values);
             Log.i("gps", "rowId: " + rowId);
@@ -65,9 +48,9 @@ public class LocationDao {
      * @param n
      * @return true is more data available
      */
-    public boolean getFirstNLocations(List<String> res, int n) {
+    public synchronized boolean getFirstNLocations(List<String> res, int n) {
         Log.i("gps", "getFirstNLocations, n: " + n);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = App1uApp.dbHelper.getWritableDatabase();
         try {
             String[] columns = new String[] {
                 COLUMN_NAME_VALUE
@@ -90,8 +73,8 @@ public class LocationDao {
         }
     }
 
-    public int delLocations(long firstId, long lastId) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+    public synchronized int delLocations(long firstId, long lastId) {
+        SQLiteDatabase db = App1uApp.dbHelper.getWritableDatabase();
         String firstIdStr = String.valueOf(firstId);
         String lastIdStr = String.valueOf(lastId);
         String where = COLUMN_NAME_KEY + " >= ? and " + COLUMN_NAME_KEY + " <= ?";
@@ -135,8 +118,8 @@ public class LocationDao {
         }
     }
 
-    public int getCount() {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+    public synchronized int getCount() {
+        SQLiteDatabase db = App1uApp.dbHelper.getReadableDatabase();
         try {
             Log.i("gps", "select count");
             Cursor c = db.rawQuery("select " + COLUMN_NAME_KEY + " from " + TABLE_NAME, null);
