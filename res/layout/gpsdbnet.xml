@@ -14,6 +14,13 @@
         android:freezesText="true"
         android:text="@string/textLatLon" />
 
+    <TextView
+        android:id="@+id/textLastTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:freezesText="true"
+        android:text="@string/textLastTime" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,6 +63,7 @@
             android:id="@+id/buttonStopGps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
             android:onClick="buttonStopGpsClick"
             android:text="@string/buttonStopGps" />
     </LinearLayout>
@@ -95,6 +103,7 @@
             android:id="@+id/buttonSend"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="90dp"
             android:onClick="buttonSendClick"
             android:text="@string/buttonSend" />
     </LinearLayout>
@@ -155,5 +164,12 @@
             android:freezesText="true"
             android:text="@string/textSendCnt" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonResetCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="buttonResetCountClick"
+        android:text="@string/buttonResetCount" />
 
 </LinearLayout>

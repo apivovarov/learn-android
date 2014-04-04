@@ -1,9 +1,11 @@
 
 package org.x4444.app1u.loc;
 
-import org.x4444.app1u.R;
+import java.util.Date;
+
 import org.x4444.app1u.App1uApp;
 import org.x4444.app1u.C;
+import org.x4444.app1u.R;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -115,8 +117,9 @@ public class LocationService extends Service {
                     logLocation("update", location);
                     updateLocation(location);
 
+                    String datetime = App1uApp.sdfHhmmss.format(new Date(location.getTime()));
                     notifBuilder.setContentText(location.getLatitude() + ","
-                            + location.getLongitude() + "@" + location.getTime());
+                            + location.getLongitude() + " " + datetime);
                     getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
                 }
             } catch (Exception e) {

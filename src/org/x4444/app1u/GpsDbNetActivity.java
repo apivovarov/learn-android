@@ -1,16 +1,21 @@
 
 package org.x4444.app1u;
 
+import java.util.Date;
+
+import org.x4444.app1u.broadcast.ErrorReceiver;
 import org.x4444.app1u.loc.LocationService;
 import org.x4444.app1u.net.NetworkService;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,12 +57,6 @@ public class GpsDbNetActivity extends Activity {
         Log.i("gps", "onStop");
     }
 
-    protected void updateGspUpdateStatusText() {
-        TextView textGpsStatus = (TextView)findViewById(R.id.textGpsUpdatesStatus);
-        String status = App1uApp.gpsFreq > 0 ? (App1uApp.gpsFreq / 1000 + " sec") : "-";
-        textGpsStatus.setText(status);
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +68,14 @@ public class GpsDbNetActivity extends Activity {
         App1uApp.plateNo = sharedPref.getString(C.PLATE_NO, "6YIT551");
         EditText editPlateNo = (EditText)findViewById(R.id.editPlateNo);
         editPlateNo.setText(App1uApp.plateNo);
+
+        // The filter's action is BROADCAST_ACTION
+        IntentFilter errorIntentFilter = new IntentFilter(C.BROADCAST_ERROR_ACTION);
+
+        // Instantiates a new ErrorReceiver
+        ErrorReceiver errReceiver = new ErrorReceiver();
+        // Registers the ErrorReceiver and its intent filters
+        LocalBroadcastManager.getInstance(this).registerReceiver(errReceiver, errorIntentFilter);
 
         Log.i("gps", "onCreate done");
     }
@@ -104,6 +111,9 @@ public class GpsDbNetActivity extends Activity {
                 }
                 textLatLon.setText(loc.getLatitude() + "," + loc.getLongitude() + " alt: " + alt);
             }
+            String dateTime = App1uApp.sdf.format(new Date(loc.getTime()));
+            TextView textLastTime = (TextView)findViewById(R.id.textLastTime);
+            textLastTime.setText(dateTime);
         }
     }
 
@@ -136,8 +146,14 @@ public class GpsDbNetActivity extends Activity {
         refreshAll();
     }
 
+    public void buttonResetCountClick(View view) {
+        App1uApp.resetCounters();
+        updateTextGpsCnt();
+        updateTextSentCnt();
+    }
+
     protected void refreshAll() {
-        updateGspUpdateStatusText();
+        updateTextGspUpdateStatus();
         updateTextGpsCnt();
         updateTextSentCnt();
         updateTextLatLon(App1uApp.lastLocation);
@@ -207,6 +223,12 @@ public class GpsDbNetActivity extends Activity {
         int cnt = App1uApp.locationDao.getCount();
         TextView textSelectCount = (TextView)findViewById(R.id.textDbLocationCount);
         textSelectCount.setText(String.valueOf(cnt));
+    }
+
+    protected void updateTextGspUpdateStatus() {
+        TextView textGpsStatus = (TextView)findViewById(R.id.textGpsUpdatesStatus);
+        String status = App1uApp.gpsFreq > 0 ? (App1uApp.gpsFreq / 1000 + " sec") : "-";
+        textGpsStatus.setText(status);
     }
 
     protected void toggleSoftInput() {

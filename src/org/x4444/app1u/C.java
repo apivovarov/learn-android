@@ -14,4 +14,8 @@ public interface C {
     long MIN_LOC_TS = 1388534400000L;
 
     long MAX_LOC_TS = 2524608000000L;
+
+    String BROADCAST_ERROR_ACTION = "org.x4444.app1u.BROADCAST_ERROR_ACTION";
+
+    String BROADCAST_ERROR_MSG = "org.x4444.app1u.BROADCAST_ERROR_MSG";
 }
