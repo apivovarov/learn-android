@@ -18,4 +18,6 @@ public interface C {
     String BROADCAST_ERROR_ACTION = "org.x4444.app1u.BROADCAST_ERROR_ACTION";
 
     String BROADCAST_ERROR_MSG = "org.x4444.app1u.BROADCAST_ERROR_MSG";
+
+    String ERROR_KEY = "ERROR_KEY";
 }

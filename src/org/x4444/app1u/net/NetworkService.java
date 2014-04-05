@@ -19,7 +19,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 public class NetworkService extends IntentService {
@@ -96,7 +95,7 @@ public class NetworkService extends IntentService {
             }
         } catch (Exception e) {
             Log.e("gps", e.getMessage(), e);
-            broadcastError(e.getMessage());
+            App1uApp.showErrorMsg(e.getMessage());
         }
     }
 
@@ -138,13 +137,5 @@ public class NetworkService extends IntentService {
                 urlConnection.disconnect();
             }
         }
-    }
-
-    protected void broadcastError(String msg) {
-        Intent localIntent = new Intent(C.BROADCAST_ERROR_ACTION)
-        // Puts the status into the Intent
-                .putExtra(C.BROADCAST_ERROR_MSG, msg);
-        // Broadcasts the Intent to receivers in this app.
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 }
