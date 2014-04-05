@@ -25,6 +25,8 @@ public class LocationService extends Service {
 
     static final int NOTIF_ID = 1;
 
+    long adjFreq;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -33,17 +35,30 @@ public class LocationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         int freq = intent.getIntExtra(C.GPS_FREQ, 5000);
-        Log.i("gps", "LocationService onStartCommand, freq: " + freq);
+
+        int realFreq;
+        if (freq <= 10000) {
+            // if freq is high - track gsp constantly (every 1 sec)
+            realFreq = 1000;
+            adjFreq = freq - 200;
+        } else {
+            // if freq is low then give gps 7 sec to fix gps after long sleep
+            realFreq = freq - 7000;
+            adjFreq = (int)(realFreq * 0.95);
+        }
+
+        Log.i("gps", "LocationService onStartCommand, freq: " + freq + " adjFreq: " + adjFreq
+                + " realFreq: " + realFreq);
 
         if (App1uApp.gpsLocListener != null) {
             removeLocationListener();
             try {
                 // sleep needed to switch from 3 min to 5 sec gps listener
-                Thread.sleep(1);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
             }
         }
-        addLocationListener(freq);
+        addLocationListener(realFreq);
 
         notifBuilder.setContentTitle("GPS update freq: " + freq / 1000 + " sec");
         getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
@@ -98,30 +113,35 @@ public class LocationService extends Service {
         }
     }
 
-    protected void updateLocation(Location location) {
-        long locTs = location.getTime();
-        if (locTs >= C.MIN_LOC_TS && locTs < C.MAX_LOC_TS) {
-            App1uApp.locationDao.saveLocation(location);
-            App1uApp.gpsCnt++;
-            App1uApp.lastLocation = location;
-        } else {
-            Log.i("gps", "skipped location with time: " + locTs);
-        }
-    }
-
     public class GpsLocationListener implements LocationListener {
+
+        long lastUpdate;
 
         @Override
         public void onLocationChanged(Location location) {
             try {
                 if (location != null) {
-                    logLocation("update", location);
-                    updateLocation(location);
+                    long now = location.getTime();
+                    if (now >= C.MIN_LOC_TS && now < C.MAX_LOC_TS) {
+                        long diff = now - lastUpdate;
+                        Log.i("gps", "onLocationChanged. gps time: " + location.getTime()
+                                + " diff: " + diff);
 
-                    String datetime = App1uApp.sdfHhmmss.format(new Date(location.getTime()));
-                    notifBuilder.setContentText(location.getLatitude() + ","
-                            + location.getLongitude() + " " + datetime);
-                    getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
+                        if (diff >= adjFreq) {
+                            lastUpdate = now;
+                            logLocation(location);
+
+                            App1uApp.locationDao.saveLocation(location);
+                            App1uApp.gpsCnt++;
+                            App1uApp.lastLocation = location;
+
+                            String datetime = App1uApp.sdfHhmmss
+                                    .format(new Date(location.getTime()));
+                            notifBuilder.setContentText(location.getLatitude() + ","
+                                    + location.getLongitude() + " " + datetime);
+                            getNotifMngr().notify(NOTIF_ID, notifBuilder.getNotification());
+                        }
+                    }
                 }
             } catch (Exception e) {
                 Log.e("gps", e.getMessage(), e);
@@ -154,8 +174,9 @@ public class LocationService extends Service {
         return notifMngr;
     }
 
-    protected void logLocation(String eventDesc, Location loc) {
-        Log.i("gps", eventDesc + ". latlon: " + loc.getLatitude() + "," + loc.getLongitude()
-                + " alt: " + loc.getAltitude() + " time: " + loc.getTime());
+    protected void logLocation(Location loc) {
+        Log.i("gps",
+                "latlon: " + loc.getLatitude() + "," + loc.getLongitude() + " alt: "
+                        + loc.getAltitude() + " time: " + loc.getTime());
     }
 }
